@@ -15,8 +15,7 @@ import glob
 import os
 
 # paths
-directory = r'C:/Users/sebas/ownCloud/ATTLENG_18_19/DATA_18_19/COPIA DE SEGURIDAD/TABLETS/POLLITOall/CSV FILES'
-
+directory = r'C:/...'
 # load files (csv)
 all_files = glob.glob(directory + '/*.csv')
 
