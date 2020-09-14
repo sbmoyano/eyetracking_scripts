@@ -67,7 +67,7 @@ def process_file(dataframe, trial_type_col, trial_type_1, trial_type_2, cols_kee
         def compute(x):
 
             d = {}
-            d['number_correct'] = x[accuracy].count()
+            d['number_trials'] = x[accuracy].count()
             d['number_errors'] = x[x[accuracy] == 0][accuracy].count()
             # omission errors have a reaction time equal to zero (no response)
             d['number_errors_omission'] = x[x[RT] == 0][RT].count()
@@ -84,9 +84,9 @@ def process_file(dataframe, trial_type_col, trial_type_1, trial_type_2, cols_kee
         df_trial_type_pivot.columns = df_trial_type_pivot.columns.map('_'.join).str.strip('_')
 
         check_cols = ['number_errors_' + trial_type_1, 'number_errors_commission_' + trial_type_1,
-                      'number_errors_omission_' + trial_type_1, 'number_correct_' + trial_type_1,
+                      'number_errors_omission_' + trial_type_1, 'number_trials_' + trial_type_1,
                       'number_errors_' + trial_type_2, 'number_errors_commission_' + trial_type_2,
-                      'number_errors_omission_' + trial_type_2, 'number_correct_' + trial_type_2]
+                      'number_errors_omission_' + trial_type_2, 'number_trials_' + trial_type_2]
 
         for column_tuple in check_cols:
             if column_tuple not in df_trial_type_pivot:
@@ -101,13 +101,13 @@ def process_file(dataframe, trial_type_col, trial_type_1, trial_type_2, cols_kee
                                                                   'number_errors_commission_' + trial_type_2: 'errors_commission_' + trial_type_2,
                                                                   'number_errors_omission_' + trial_type_1: 'errors_omission_' + trial_type_1,
                                                                   'number_errors_omission_' + trial_type_2: 'errors_omission_' + trial_type_2,
-                                                                  'number_correct_' + trial_type_1: 'total_correct_' + trial_type_1,
-                                                                  'number_correct_' + trial_type_2: 'total_correct_' + trial_type_2})
+                                                                  'number_trials_' + trial_type_1: 'total_trials_' + trial_type_1,
+                                                                  'number_trials_' + trial_type_2: 'total_trials_' + trial_type_2})
         # compute total errors and total trials
         df_trial_type_pivot['total_errors'] = df_trial_type_pivot[['errors_' + trial_type_1,
                                                                    'errors_' + trial_type_2]].sum(axis=1)
-        df_trial_type_pivot['total_correct'] = df_trial_type_pivot[['total_correct_' + trial_type_1,
-                                                                    'total_correct_' + trial_type_2]].sum(axis=1)
+        df_trial_type_pivot['total_trials'] = df_trial_type_pivot[['total_trials_' + trial_type_1,
+                                                                    'total_trials_' + trial_type_2]].sum(axis=1)
 
         return df_trial_type_pivot
 
