@@ -27,13 +27,13 @@ from I2MC_functions import *
 # =============================================================================
 
 # directory of each Sample Report
-directory_OverlapTarget = 'C:/Users/sebas/ownCloud/BEXAT/Exported_Data_Eyelink/I2MC_6mo_VSL_May2020/Overlap_Stim/6_mo/'
-directory_OverlapCentral = 'C:/Users/sebas/ownCloud/BEXAT/Exported_Data_Eyelink/I2MC_6mo_VSL_May2020/Overlap_Central_Stim/6_mo/'
-directory_GapTarget = 'C:/Users/sebas/ownCloud/BEXAT/Exported_Data_Eyelink/I2MC_6mo_VSL_May2020/Gap_Stim/6_mo/'
-directory_GapCentral = 'C:/Users/sebas/ownCloud/BEXAT/Exported_Data_Eyelink/I2MC_6mo_VSL_May2020/Gap_Central_Stim/6_mo/'
+directory_OverlapTarget = 'C:/.../'
+directory_OverlapCentral = 'C:/.../'
+directory_GapTarget = 'C:/.../'
+directory_GapCentral = 'C:/.../'
 
 # directory to save results
-directory_saving_results = 'C:/Users/sebas/ownCloud/BEXAT/Exported_Data_Eyelink/I2MC_6mo_VSL_May2020/I2MC_processed/'
+directory_saving_results = 'C:/.../'
 
 # rows to skip when loading data
 nskip = 1
