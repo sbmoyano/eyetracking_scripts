@@ -189,7 +189,7 @@ def load_files(directory):
     Load all the files names into a list to use it in applyI2MCallfiles function
 
     Input:
-        None
+        directory: directory with files
     Output:
         files: list of filenames in the folder
     """
