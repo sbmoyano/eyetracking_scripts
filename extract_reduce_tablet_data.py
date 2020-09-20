@@ -10,9 +10,17 @@ Granada, Spain
 
 """
 
+# =============================================================================
+#  IMPORT MODULES
+# =============================================================================
+
 import pandas as pd
 import glob
 import os
+
+# =============================================================================
+#  SET PARAMETERS
+# =============================================================================
 
 # paths
 directory = r'C:/...'
@@ -28,6 +36,9 @@ correct = 1                # code for correct responses
 timestamp = 'datetime'     # timestamp column (sometimes is useful to differentiate files with same id)
 cols_to_keep = [id, trial, RT, accuracy, timestamp]
 
+# =============================================================================
+#  PROCESS FILE FUNCTION
+# =============================================================================
 
 def process_file(dataframe, trial_type_col, trial_type_1, trial_type_2, cols_keep):
 
@@ -128,6 +139,9 @@ def process_file(dataframe, trial_type_col, trial_type_1, trial_type_2, cols_kee
 
     return results_without200ms
 
+# =============================================================================
+#  EXAMPLE
+# =============================================================================
 
 data = []
 
