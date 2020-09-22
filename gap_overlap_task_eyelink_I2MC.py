@@ -48,6 +48,17 @@ options = {'xres': 1920,        # screen resolution x axis
            'disttoscreen': 60,  # distance to screen (cm)
            'minFixDur': 100}    # fixation minimum duration
 
+# specify file columns with the following information
+columns = {'trial_start_time': 'TRIAL_START_TIME',  # trial start time
+           'sample_time': 'TIME',                   # recording time for each sample
+           'timestamp': 'TIMESTAMP',                # timestamp (from the start of the trial, our files doesn't have it)
+           'right_gaze_x': 'RIGHT_GAZE_X',          # x coordinates for right eye
+           'right_gaze_y': 'RIGHT_GAZE_Y',          # y coordinates for right eye
+           'left_gaze_x': 'LEFT_GAZE_X',            # x coordinates for left eye
+           'left_gaze_y': 'LEFT_GAZE_Y',            # y coordinates for left eye
+           'trial': 'TRIAL_INDEX',                  # trial index
+           'target_loc': 'SIDE_CONDITION'}          # target location (if needed)
+
 # =============================================================================
 # IMPORT FUNCTION (EYELINK 1000 PLUS)
 # =============================================================================
@@ -78,7 +89,7 @@ def import_eyelink1000plus(fname):
     # load csv
     loaded_data = pd.read_csv(fname, sep='\t', header=0, index_col=False, decimal=',')
     # TIME provides the start of each sample from the Trial Start Time
-    loaded_data['TIME'] = loaded_data['TIMESTAMP'] - loaded_data['TRIAL_START_TIME']
+    loaded_data[columns['sample_time']] = loaded_data[columns['timestamp']] - loaded_data[columns['trial_start_time']]
 
     return loaded_data
 
@@ -124,20 +135,20 @@ def trial_selection(imported_data):
     # iterate over trials
     for trial in trials:
         # we can use trial as it is an integer to get_group()
-        loaded_data = imported_data.groupby(['TRIAL_INDEX']).get_group(trial)
+        loaded_data = imported_data.groupby([columns['trial']]).get_group(trial)
         current_trial = trial
         print('Currently working on trial: ' + str(trial))
 
-        data['time'] = loaded_data['TIME'].to_numpy()           # timestamp
-        data['L_X'] = loaded_data['LEFT_GAZE_X'].to_numpy()     # left gaze x axis
-        data['L_Y'] = loaded_data['LEFT_GAZE_Y'].to_numpy()     # left gaze y axis
-        data['R_X'] = loaded_data['RIGHT_GAZE_X'].to_numpy()    # right gaze x axis
-        data['R_Y'] = loaded_data['RIGHT_GAZE_Y'].to_numpy()    # right gaze y axis
-        data['trial'] = loaded_data['TRIAL_INDEX'].to_numpy()   # trial
-        data['position'] = loaded_data['SIDE_CONDITION']        # stimulus location
+        data['time'] = loaded_data[columns['sample_time']].to_numpy()    # timestamp
+        data['L_X'] = loaded_data[columns['left_gaze_x']].to_numpy()     # left gaze x axis
+        data['L_Y'] = loaded_data[columns['left_gaze_y']].to_numpy()     # left gaze y axis
+        data['R_X'] = loaded_data[columns['right_gaze_x']].to_numpy()    # right gaze x axis
+        data['R_Y'] = loaded_data[columns['right_gaze_y']].to_numpy()    # right gaze y axis
+        data['trial'] = loaded_data[columns['trial']].to_numpy()         # trial
+        data['position'] = loaded_data[columns['target_loc']]            # stimulus location
 
         # dictionary with target position by trial
-        dict_pos[current_trial] = ''.join(loaded_data['SIDE_CONDITION'].unique())
+        dict_pos[current_trial] = ''.join(loaded_data[columns['target_loc']].unique())
         
         # left eye
         lMiss1 = np.logical_or(data['L_X'] < -options['xres'], data['L_X'] > 2*options['xres'])
@@ -276,15 +287,15 @@ def AOI_fixations_target(df_fix):
     """
 
     # x and y coordinates inside screen
-    condition_inscreen_xpos = (df_fix['xpos'] > 0) & (df_fix['xpos'] < 1920)
-    condition_inscreen_ypos = (df_fix['ypos'] > 0) & (df_fix['ypos'] < 1080)
+    condition_in_screen_xpos = (df_fix['xpos'] > 0) & (df_fix['xpos'] < 1920)
+    condition_in_screen_ypos = (df_fix['ypos'] > 0) & (df_fix['ypos'] < 1080)
     # x and y coordinates for left, right, central and y pos
     condition_in_left_xpos = (df_fix['xpos'] > 16) & (df_fix['xpos'] < 616)
     condition_in_right_xpos = (df_fix['xpos'] > 1302) & (df_fix['xpos'] < 1902)
     condition_in_central_xpos = (df_fix['xpos'] > 660) & (df_fix['xpos'] < 1260)
     condition_in_ypos = (df_fix['ypos'] > 140) & (df_fix['ypos'] < 940)
     # general conditions
-    condition_in_screen = condition_inscreen_xpos & condition_inscreen_ypos
+    condition_in_screen = condition_in_screen_xpos & condition_in_screen_ypos
 
     # masks
     mask_left = condition_in_left_xpos & condition_in_ypos
