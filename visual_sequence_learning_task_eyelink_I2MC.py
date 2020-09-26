@@ -772,6 +772,7 @@ def get_files_output():
     Output:
         None
     """
+    
     # return processed files for blackscreen and reactive
     df_blackscreen, df_reactive = process_files()
     # return df with number of correct reactive by subject and dictionary with the same information
