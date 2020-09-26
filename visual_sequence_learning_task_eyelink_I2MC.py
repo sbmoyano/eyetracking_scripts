@@ -20,7 +20,7 @@ and compute scores for the visual sequence learning task.
 import pandas as pd
 import os
 # I2MC function could be found in Roy Hessels GitHub
-from usethis_I2MC_functions import *
+from I2MC_functions import *
 
 # =============================================================================
 # SET PARAMETERS
