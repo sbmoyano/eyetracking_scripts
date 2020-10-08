@@ -46,15 +46,23 @@ options = {'xres': 1920,        # screen resolution x axis
            'disttoscreen': 60,  # distance to screen (cm)
            'minFixDur': 100}    # fixation minimum duration
 
-columns = {'trial_start_time': 'TRIAL_START_TIME',
-           'sample_time': 'TIME',
-           'timestamp': 'TIMESTAMP',
-           'right_gaze_x': 'RIGHT_GAZE_X',
-           'right_gaze_y': 'RIGHT_GAZE_Y',
-           'left_gaze_x': 'LEFT_GAZE_X',
-           'left_gaze_y': 'LEFT_GAZE_Y',
-           'trial': 'TRIAL_INDEX',
-           'target_loc': 'position'}
+columns = {'trial_start_time': 'TRIAL_START_TIME',      # trial start time column name
+           'sample_time': 'TIME',                       # sample time column name
+           'timestamp': 'TIMESTAMP',                    # timestamp column name
+           'right_gaze_x': 'RIGHT_GAZE_X',              # x axis coordinates right gaze column name
+           'right_gaze_y': 'RIGHT_GAZE_Y',              # y axis coordinates right gaze column name
+           'left_gaze_x': 'LEFT_GAZE_X',                # x axis coordinates left gaze column name
+           'left_gaze_y': 'LEFT_GAZE_Y',                # y axis coordinates left gaze column name
+           'trial': 'TRIAL_INDEX',                      # trial column name
+           'target_loc': 'position'}                    # target location column name
+
+AOIs = {'x_left_AOI': [0, 764],         # coordinates for x coordinates left AOI
+        'y_left_AOI': [0, 1080],        # coordinates for y coordinates left AOI
+        'x_right_AOI': [1156, 1920],    # coordinates for x coordinates right AOI
+        'y_right_AOI': [0, 1080],       # coordinates for y coordinates right AOI
+        'x_central_AOI': [764, 1156],   # coordinates for x coordinates central AOI
+        'y_central_AOI': [0, 1080]}     # coordinates for y coordinates central AOI
+
 
 # dictionary with sequences per trial
 dict_sequences = {1: 1, 2: 1, 3: 2, 4: 2, 5: 3, 6: 3, 7: 4, 8: 4, 9: 5, 10: 5, 11: 6, 12: 6, 13: 7, 14: 7, 15: 8, 16: 8,
@@ -281,14 +289,14 @@ def AOI_fixation(f_fixations):
     """
 
     # x and y coordinates inside screen
-    condition_in_screen_xpos = (f_fixations['xpos'] > 0) & (f_fixations['xpos'] < 1920)
-    condition_in_screen_ypos = (f_fixations['ypos'] > 0) & (f_fixations['ypos'] < 1080)
+    condition_in_screen_xpos = (f_fixations['xpos'] > 0) & (f_fixations['xpos'] < options['xres'])
+    condition_in_screen_ypos = (f_fixations['ypos'] > 0) & (f_fixations['ypos'] < options['yres'])
     # x and y coordinates for left AOI
-    condition_in_left_xpos = (f_fixations['xpos'] > 0) & (f_fixations['xpos'] <= 764)
+    condition_in_left_xpos = (f_fixations['xpos'] > AOIs['x_left_AOI'][0]) & (f_fixations['xpos'] <= AOIs['x_left_AOI'][1])
     # x and y coordinates for right AOI
-    condition_in_right_xpos = (f_fixations['xpos'] >= 1156) & (f_fixations['xpos'] < 1920)
+    condition_in_right_xpos = (f_fixations['xpos'] >= AOIs['x_right_AOI'][0]) & (f_fixations['xpos'] < AOIs['x_right_AOI'][1])
     # x and y coordinates for central AOI
-    condition_in_central_xpos = (f_fixations['xpos'] > 764) & (f_fixations['xpos'] < 1156)
+    condition_in_central_xpos = (f_fixations['xpos'] > AOIs['x_central_AOI'][0]) & (f_fixations['xpos'] < AOIs['x_central_AOI'][1])
     # general conditions
     condition_in_screen = condition_in_screen_xpos & condition_in_screen_ypos
     # masks
