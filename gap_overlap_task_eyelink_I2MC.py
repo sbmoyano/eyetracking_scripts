@@ -48,7 +48,6 @@ options = {'xres': 1920,        # screen resolution x axis
            'disttoscreen': 60,  # distance to screen (cm)
            'minFixDur': 100}    # fixation minimum duration
 
-# specify file columns with the following information
 columns = {'trial_start_time': 'TRIAL_START_TIME',  # trial start time
            'sample_time': 'TIME',                   # recording time for each sample
            'timestamp': 'TIMESTAMP',                # timestamp (from the start of the trial, our files doesn't have it)
@@ -58,6 +57,13 @@ columns = {'trial_start_time': 'TRIAL_START_TIME',  # trial start time
            'left_gaze_y': 'LEFT_GAZE_Y',            # y coordinates for left eye
            'trial': 'TRIAL_INDEX',                  # trial index
            'target_loc': 'SIDE_CONDITION'}          # target location (if needed)
+
+AOIs = {'x_left_AOI': [16, 616],         # coordinates for x coordinates left AOI
+        'y_left_AOI': [140, 940],        # coordinates for y coordinates left AOI
+        'x_right_AOI': [1302, 1902],     # coordinates for x coordinates right AOI
+        'y_right_AOI': [140, 940],       # coordinates for y coordinates right AOI
+        'x_central_AOI': [660, 1260],    # coordinates for x coordinates central AOI
+        'y_central_AOI': [140, 940]}     # coordinates for y coordinates central AOI
 
 # =============================================================================
 # IMPORT FUNCTION (EYELINK 1000 PLUS)
@@ -287,13 +293,18 @@ def AOI_fixations_target(df_fix):
     """
 
     # x and y coordinates inside screen
-    condition_in_screen_xpos = (df_fix['xpos'] > 0) & (df_fix['xpos'] < 1920)
-    condition_in_screen_ypos = (df_fix['ypos'] > 0) & (df_fix['ypos'] < 1080)
+    condition_inscreen_xpos = (df_fix['xpos'] > 0) & (df_fix['xpos'] < options['xres'])
+    condition_inscreen_ypos = (df_fix['ypos'] > 0) & (df_fix['ypos'] < options['yres'])
     # x and y coordinates for left, right, central and y pos
-    condition_in_left_xpos = (df_fix['xpos'] > 16) & (df_fix['xpos'] < 616)
-    condition_in_right_xpos = (df_fix['xpos'] > 1302) & (df_fix['xpos'] < 1902)
-    condition_in_central_xpos = (df_fix['xpos'] > 660) & (df_fix['xpos'] < 1260)
-    condition_in_ypos = (df_fix['ypos'] > 140) & (df_fix['ypos'] < 940)
+    condition_in_left_xpos = (df_fix['xpos'] > AOIs['x_left_AOI'][0]) & \
+                             (df_fix['xpos'] < AOIs['x_left_AOI'][1])
+    condition_in_right_xpos = (df_fix['xpos'] > AOIs['x_right_AOI'][0]) & \
+                              (df_fix['xpos'] < AOIs['x_right_AOI'][1])
+    condition_in_central_xpos = (df_fix['xpos'] > AOIs['x_central_AOI'][0]) & \
+                                (df_fix['xpos'] < AOIs['x_central_AOI'][1])
+    # is the same in the three AOIs, let's just use one
+    condition_in_ypos = (df_fix['ypos'] > AOIs['y_left_AOI'][0]) & \
+                        (df_fix['ypos'] < AOIs['y_left_AOI'][1])
     # general conditions
     condition_in_screen = condition_in_screen_xpos & condition_in_screen_ypos
 
@@ -336,11 +347,13 @@ def AOI_fixations_central(df_fix):
     """
 
     # x and y coordinates inside screen
-    condition_in_screen_xpos = (df_fix['xpos'] > 0) & (df_fix['xpos'] < 1920)
-    condition_in_screen_ypos = (df_fix['ypos'] > 0) & (df_fix['ypos'] < 1080)
+    condition_in_screen_xpos = (df_fix['xpos'] > 0) & (df_fix['xpos'] < options['xres'])
+    condition_in_screen_ypos = (df_fix['ypos'] > 0) & (df_fix['ypos'] < options['yres'])
     # x and y coordinates in central AOI, outside central AOI and inside ypos for AOIs
-    condition_in_central_xpos = (df_fix['xpos'] > 660) & (df_fix['xpos'] < 1260)
-    condition_in_ypos = (df_fix['ypos'] > 140) & (df_fix['ypos'] < 940)
+    condition_in_central_xpos = (df_fix['xpos'] > AOIs['x_central_AOI'][0]) & \
+                                (df_fix['xpos'] < AOIs['x_central_AOI'][1])
+    condition_in_ypos = (df_fix['ypos'] > AOIs['y_central_AOI'][0]) & \
+                        (df_fix['ypos'] < AOIs['y_central_AOI'][1])
     # general conditions for inside, outside screen and central AOI
     condition_in_screen = condition_in_screen_xpos & condition_in_screen_ypos
     condition_in_central = condition_in_central_xpos & condition_in_ypos
