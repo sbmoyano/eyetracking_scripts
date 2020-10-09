@@ -479,13 +479,20 @@ def correct_reactive(reactive):
     # label correct reactive looks
     reactive.loc[condition_reactive, 'correct_reactive'] = 1
     # count number of reactive looks by subject
-    reactive_correct = reactive.groupby(['subject']).agg(n_reactive=('correct_reactive', 'sum'))
+    reactive_correct = df_reactive.groupby(['subject']).agg(n_reactive=('correct_reactive', 'sum'))
     reactive_correct.reset_index(drop=False, inplace=True)
+    # count number of reactive looks by subject and subgroup
+    reactive_correct_subgroup = df_reactive.groupby(['subject', 'subgroup']).agg(n_reactive=('correct_reactive', 'sum'))
+    reactive_correct_subgroup.reset_index(drop=False, inplace=True)
+    # create dictionaries
     dict_reactive_by_subject = dict(zip(reactive_correct.subject, reactive_correct.n_reactive))
+    dict_reactive_by_subject_subgroup = dict(zip(zip(reactive_correct_subgroup.subject,
+                                                     reactive_correct_subgroup.subgroup),
+                                                 reactive_correct_subgroup.n_reactive))
 
-    df_reactive_completed = reactive.copy(deep=True)
+    df_reactive_completed = df_reactive.copy(deep=True)
 
-    return df_reactive_completed, dict_reactive_by_subject
+    return df_reactive_completed, dict_reactive_by_subject, dict_reactive_by_subject_subgroup
 
 # =============================================================================
 #  FIND THE TRIAL IN WHICH THE SECOND SEQUENCE ATTENDED IS ACHIEVED
@@ -706,10 +713,11 @@ def statistics_subject(df_summarize_valid_anticipations, dict_reactive_by_subjec
     VSL_stats_subject = df_summarize_valid_anticipations.groupby(['subject']).agg(
         n_correct_anticipations=('correct_anticipation', 'sum'),
         n_sticky_fixation=('sticky_fixation', 'sum'),
+        n_reactive_after_second_sequence=('correct_reactive', 'sum'),
         trial_max_completed=('trial', 'max'),
         n_total_anticipations=('trial', 'nunique')).reset_index(drop=False)
-
-    VSL_stats_subject['n_reactive_alltask'] = VSL_stats_subject['subject'].map(dict_reactive_by_subject)
+    # map into df
+    VSL_stats_subject['n_reactive_all_task'] = VSL_stats_subject['subject'].map(dict_reactive_by_subject)
     # keep columns by subject
     trials_remain = df_trials_removed_after_second_sequence.groupby(['subject'])[['subject',
                                                                                   'n_trials_remain_after_remove_second_sequence',
@@ -724,8 +732,8 @@ def statistics_subject(df_summarize_valid_anticipations, dict_reactive_by_subjec
 # =============================================================================
 
 
-def statistics_subgroups(df_summarize_valid_anticipations, dict_reactive_by_subject,
-                       df_trials_removed_after_second_sequence):
+def statistics_subgroups(df_summarize_valid_anticipations, dict_reactive_by_subject_subgroup,
+                         df_trials_removed_after_second_sequence):
 
     """
     Done by data subgroup:
@@ -750,10 +758,12 @@ def statistics_subgroups(df_summarize_valid_anticipations, dict_reactive_by_subj
     VSL_stats_subgroups = df_summarize_valid_anticipations.groupby(['subject', 'subgroup']).agg(
         n_correct_anticipations=('correct_anticipation', 'sum'),
         n_sticky_fixations=('sticky_fixation', 'sum'),
+        n_reactive_after_second_sequence=('correct_reactive', 'sum'),
         trial_max_completed=('trial', 'max'),
         n_total_anticipations=('trial', 'nunique')).reset_index(drop=False)
-
-    VSL_stats_subgroups['n_reactive_alltask'] = VSL_stats_subgroups['subject'].map(dict_reactive_by_subject)
+    # map into df
+    VSL_stats_subgroups['n_reactive_all_task'] = VSL_stats_subgroups.set_index(['subject', 'subgroup']).index.\
+        map(dict_reactive_by_subject_subgroup.get)
     # keep columns by subject
     trials_remain = df_trials_removed_after_second_sequence.groupby(['subject'])[['subject',
                                                                                   'n_trials_remain_after_remove_second_sequence',
@@ -778,13 +788,15 @@ def get_files_output():
         None
 
     Output:
-        None
+        df_VSL_stats_by_subject: DataFrame with reduced data per participant
+        df_VSL_stats_by_subgroup_pivot: DataFrame with reduced data per participant for
+                                        each sub-block of data
     """
-    
+
     # return processed files for blackscreen and reactive
     df_blackscreen, df_reactive = process_files()
     # return df with number of correct reactive by subject and dictionary with the same information
-    df_reactive_completed, dict_reactive_by_subject = correct_reactive(df_reactive)
+    df_reactive_completed, dict_reactive_by_subject, dict_reactive_by_subject_subgroup = correct_reactive(df_reactive)
     # return df with only trial_second_sequence_attended
     df_second_sequence_achieved = second_sequence_attended(df_reactive_completed)
     # return blackscreen and reactive dfs merged with correct reactive column
@@ -795,9 +807,19 @@ def get_files_output():
     # basic statistics
     df_VSL_stats_by_subject = statistics_subject(df_summary_valid_anticipations, dict_reactive_by_subject,
                                                  df_trials_remain)
-    df_VSL_stats_by_subgroup = statistics_subgroups(df_summary_valid_anticipations, dict_reactive_by_subject,
+    df_VSL_stats_by_subgroup = statistics_subgroups(df_summary_valid_anticipations, dict_reactive_by_subject_subgroup,
                                                     df_trials_remain)
+    df_VSL_stats_by_subgroup_pivot = df_VSL_stats_by_subgroup.pivot(index='subject', columns='subgroup',
+                                                                    values=['n_correct_anticipations',
+                                                                            'n_sticky_fixations',
+                                                                            'trial_max_completed',
+                                                                            'n_total_anticipations'])
     # save output
     df_VSL_stats_by_subject.to_csv(os.path.join(directory_results, 'VSL_stats_by_subject.txt'), sep=';', decimal=',')
-    df_VSL_stats_by_subgroup.to_csv(os.path.join(directory_results, 'VSL_stats_by_subgroup.txt'), sep=';', decimal=',')
+    df_VSL_stats_by_subgroup_pivot.to_csv(os.path.join(directory_results, 'VSL_stats_by_subgroup.txt'), sep=';',
+                                          decimal=',')
 
+    return df_VSL_stats_by_subject, df_VSL_stats_by_subgroup
+
+
+VSL_stats_subject, VSL_stats_subject_subgroup = get_files_output()
