@@ -143,7 +143,8 @@ def trial_selection(imported_data):
     # we can use set as it is ordered from 1 to 24, it doesn't have missing trials
     for trial in trials:
         loaded_data = imported_data.groupby([columns['trial']]).get_group(trial)
-
+        print('Currently working on trial: ' + str(trial))
+           
         data['time'] = loaded_data[columns['sample_time']].to_numpy()    # timestamp
         data['L_X'] = loaded_data[columns['left_gaze_x']].to_numpy()     # left gaze x axis
         data['L_Y'] = loaded_data[columns['left_gaze_y']].to_numpy()     # left gaze y axis
