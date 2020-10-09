@@ -816,7 +816,8 @@ def get_files_output():
                                                                             'n_sticky_fixations',
                                                                             'trial_max_completed',
                                                                             'n_total_anticipations',
-                                                                            'n_reactive_after_second_sequence'])
+                                                                            'n_reactive_after_second_sequence',
+                                                                            'n_reactive_all_task'])
     # save output
     df_VSL_stats_by_subject.to_csv(os.path.join(directory_results, 'VSL_stats_by_subject.txt'), sep=';', decimal=',')
     df_VSL_stats_by_subgroup_pivot.to_csv(os.path.join(directory_results, 'VSL_stats_by_subgroup.txt'), sep=';',
