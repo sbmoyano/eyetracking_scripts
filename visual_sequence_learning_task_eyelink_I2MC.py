@@ -820,7 +820,7 @@ def get_files_output():
     df_VSL_stats_by_subgroup_pivot.to_csv(os.path.join(directory_results, 'VSL_stats_by_subgroup.txt'), sep=';',
                                           decimal=',')
 
-    return df_VSL_stats_by_subject, df_VSL_stats_by_subgroup
+    return df_VSL_stats_by_subject, df_VSL_stats_by_subgroup_pivot
 
 
 VSL_stats_subject, VSL_stats_subject_subgroup = get_files_output()
