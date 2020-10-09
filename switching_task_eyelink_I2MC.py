@@ -600,44 +600,6 @@ def short_report(df_merged, dict_anticipations_count, dict_trial_max, dict_stim_
     return df_short_report
 
 # =============================================================================
-# VALIDATE ANTICIPATIONS BASED ON REACTIVE FIXATIONS
-# =============================================================================
-
-
-def validate_anticipations(df_anticipations_reactive):
-
-    """
-    Labels as valid anticipations those that are followed by a correct
-    reactive fixation in the same trial. Valid anticipations could be
-    either correct or incorrect.
-
-    Input:
-        df_anticipations_reactive: DataFrame with merged processed data for
-                                   anticipatory and reactive fixations
-
-    Output:
-         df_validated_anticipations: DataFrame with anticipations validated
-    """
-
-    # conditions
-    condition_correct_reactive = df_anticipations_reactive['correct_reactive'] == 1
-    condition_correct_anticipation = df_anticipations_reactive['correct_anticipation'] == 1
-    condition_incorrect_anticipation = df_anticipations_reactive['incorrect_anticipation'] == 1
-
-    # masks
-    mask_valid_correct_anticipation = condition_correct_reactive & condition_correct_anticipation
-    mask_valid_incorrect_anticipation = condition_correct_reactive & condition_incorrect_anticipation
-
-    # label
-    df_anticipations_reactive.loc[mask_valid_correct_anticipation, 'valid_correct_anticipation'] = 1
-    df_anticipations_reactive.loc[mask_valid_incorrect_anticipation, 'valid_incorrect_anticipation'] = 1
-
-    df_validated_anticipations = df_anticipations_reactive.copy(deep=True)
-
-    return df_validated_anticipations
-
-
-# =============================================================================
 #  ANALYZE ANTICIPATIONS (CALLS FUNCTIONS)
 # =============================================================================
 
