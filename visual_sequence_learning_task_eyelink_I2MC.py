@@ -810,11 +810,13 @@ def get_files_output():
                                                  df_trials_remain)
     df_VSL_stats_by_subgroup = statistics_subgroups(df_summary_valid_anticipations, dict_reactive_by_subject_subgroup,
                                                     df_trials_remain)
+    # pivot table
     df_VSL_stats_by_subgroup_pivot = df_VSL_stats_by_subgroup.pivot(index='subject', columns='subgroup',
                                                                     values=['n_correct_anticipations',
                                                                             'n_sticky_fixations',
                                                                             'trial_max_completed',
-                                                                            'n_total_anticipations'])
+                                                                            'n_total_anticipations',
+                                                                            'n_reactive_after_second_sequence'])
     # save output
     df_VSL_stats_by_subject.to_csv(os.path.join(directory_results, 'VSL_stats_by_subject.txt'), sep=';', decimal=',')
     df_VSL_stats_by_subgroup_pivot.to_csv(os.path.join(directory_results, 'VSL_stats_by_subgroup.txt'), sep=';',
