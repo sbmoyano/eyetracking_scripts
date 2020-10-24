@@ -15,7 +15,7 @@ This accelerated longitudinal study was supervised by Dr. M. Rosario Rueda and c
 4. Young-Child ANT task (Rueda et al., 2004)
 
 **Eye tracking tasks were built in Experiment Center (SensoMotoric Instruments, SMI) and Experiment Builder (SR Research):** <br>
-*- Data was reduced employing I2MC algorithm by Hessels et al. (2017)*
+*Data was reduced employing I2MC algorithm by Hessels et al. (2017)*
 1. Visual Sequence Learning task (Clohessy et al., 2001)
 2. Gap-Overlap task
 3. Switching task (Kovács & Mehler, 2009)
