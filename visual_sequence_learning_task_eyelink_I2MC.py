@@ -593,10 +593,7 @@ def remove_trials_before_second_sequence_attended(df_second_sequence_attended, d
     # explode the lists
     df_trials_removed_after_second_sequence = df_trials_removed_after_second_sequence.explode('trial').\
         reset_index(drop=False)
-    # df with number of trials that remained after deletion
-    df_count_trials_remain = df_trials_removed_after_second_sequence.groupby(['subject'])['trial'].count().\
-        reset_index(drop=False)
-    df_count_trials_remain.rename(columns={'trial': 'n_trials_remain_after_remove_second_sequence'}, inplace=True)
+    # reset index
     df_second_sequence_attended.reset_index(drop=False, inplace=True)
     # merge dfs
     df_trials_removed_after_second_sequence = pd.merge(df_trials_removed_after_second_sequence,
@@ -607,10 +604,9 @@ def remove_trials_before_second_sequence_attended(df_second_sequence_attended, d
     df_trials_removed_after_second_sequence['correct_reactive'] = 1
 
     # merge blackscreen (anticipations) and reactive with trials removed before second sequence attended
-    df_blackscreen_reactive = df_blackscreen.merge(df_trials_removed_after_second_sequence,
-                                                   how='inner',
-                                                   on=['subject', 'trial'],
-                                                   suffixes=('_blackscreen', '_reactive'))
+    df_trials_removed_after_second_sequence = pd.merge(df_trials_removed_after_second_sequence,
+                                                       df_second_sequence_attended,
+                                                       on='subject', how='inner')
 
     return df_trials_removed_after_second_sequence, df_blackscreen_reactive
 
@@ -721,7 +717,6 @@ def statistics_subject(df_summarize_valid_anticipations, dict_reactive_by_subjec
     VSL_stats_subject['n_reactive_all_task'] = VSL_stats_subject['subject'].map(dict_reactive_by_subject)
     # keep columns by subject
     trials_remain = df_trials_removed_after_second_sequence.groupby(['subject'])[['subject',
-                                                                                  'n_trials_remain_after_remove_second_sequence',
                                                                                   'trial_second_sequence_attended']].head(1)
     # merge with VSL stats
     VSL_stats_subject = VSL_stats_subject.merge(trials_remain, how='inner', on='subject')
@@ -767,7 +762,6 @@ def statistics_subgroups(df_summarize_valid_anticipations, dict_reactive_by_subj
         map(dict_reactive_by_subject_subgroup.get)
     # keep columns by subject
     trials_remain = df_trials_removed_after_second_sequence.groupby(['subject'])[['subject',
-                                                                                  'n_trials_remain_after_remove_second_sequence',
                                                                                   'trial_second_sequence_attended']].head(1)
     # merge with VSL stats
     VSL_stats_subgroups = VSL_stats_subgroups.merge(trials_remain, how='inner', on='subject')
@@ -814,9 +808,9 @@ def get_files_output():
     df_VSL_stats_by_subgroup_pivot = df_VSL_stats_by_subgroup.pivot(index='subject', columns='subgroup',
                                                                     values=['n_correct_anticipations',
                                                                             'n_sticky_fixations',
+                                                                            'n_reactive_after_second_sequence',
                                                                             'trial_max_completed',
                                                                             'n_total_anticipations',
-                                                                            'n_reactive_after_second_sequence',
                                                                             'n_reactive_all_task'])
     # save output
     df_VSL_stats_by_subject.to_csv(os.path.join(directory_results, 'VSL_stats_by_subject.txt'), sep=';', decimal=',')
