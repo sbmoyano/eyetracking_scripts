@@ -757,6 +757,16 @@ def statistics_subgroups(df_summarize_valid_anticipations, dict_reactive_by_subj
         n_reactive_after_second_sequence=('correct_reactive', 'sum'),
         trial_max_completed=('trial', 'max'),
         n_total_anticipations=('trial', 'nunique')).reset_index(drop=False)
+    # add subgroups removed during analysis
+    list_subjects = list(VSL_stats_subgroups['subject'].unique())
+    list_subgroups = [1, 2, 3, 4]
+    # create a dict with sequences by subject
+    dict_subjects_subgroups = dict.fromkeys(list_subjects, list_subgroups)
+    # explode dict into a df
+    df_subjects_subgroups = pd.DataFrame([dict_subjects_subgroups]).T.explode(0).reset_index(drop=False).\
+        rename(columns={'index': 'subject', 0: 'subgroup'})
+    # merge dfs - stats by subgroups with subgroups removed added again
+    VSL_stats_subgroups = df_subjects_subgroups.merge(VSL_stats_subgroups, on=['subject', 'subgroup'], how='outer')
     # map into df
     VSL_stats_subgroups['n_reactive_all_task'] = VSL_stats_subgroups.set_index(['subject', 'subgroup']).index.\
         map(dict_reactive_by_subject_subgroup.get)
