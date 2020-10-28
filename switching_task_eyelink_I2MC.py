@@ -30,7 +30,13 @@ from usethis_I2MC_functions import *
 # load directory file
 directory_boxes_block1 = 'C:/...'
 directory_boxes_block2 = 'C:/...'
+directory_reactive_block1 = 'C:/...'
+directory_reactive_block2 = 'C:/...'
 
+# directory to save results
+directory_saving_results = 'C:/...'
+
+# dictionary grouping directory by blocks
 dict_boxes_blocks = {'block1': [directory_boxes_block1, 'target_loc_block_1'],
                      'block2': [directory_boxes_block2, 'target_loc_block_2']}
 
@@ -600,7 +606,7 @@ def short_report(df_merged, dict_anticipations_count, dict_trial_max, dict_stim_
     return df_short_report
 
 # =============================================================================
-#  ANALYZE ANTICIPATIONS (CALLS FUNCTIONS)
+#  ANALYZE ANTICIPATIONS AND REACTIVE FIXATIONS (CALLS FUNCTIONS)
 # =============================================================================
 
 
@@ -649,9 +655,94 @@ def analyze_anticipations():
     return df_boxes_result_blocks, df_short_report_boxes
 
 
+def analyze_reactive():
 
-# code to call
-anticipations, anticipations_report = analyze_anticipations()
+    """
+    Calls the necessary functions to process the data for reactive fixations
+
+    Input:
+        None
+    Output:
+        df_reactive_result_blocks: DataFrame with detailed data for correct reactive
+                                   fixations for each block per participant
+        df_short_report_reactive: Dataframe with reduced data for each block per participant
+    """
+
+    list_df_reactive = []
+    list_df_reports = []
+
+    for block_key, block_values in dict_reactive_blocks.items():
+
+        # apply I2MC function to each block
+        df_data_fixations, df_data_raw, dict_stim_position, dict_anticipations_count, dict_trial_max, files = \
+            apply_I2MC_all_files_by_block(block_values[0], block_key, block_values[1])
+
+        # get AOI for each fixation
+        df_aoi_fixations_reactive = AOI_fixation(df_data_fixations)
+        # get mean fixation duration and total fixation duration per trial and AOI
+        df_trial_reduced_reactive = reduce_data(df_aoi_fixations_reactive)
+        # get position of stimulus appearance per trial
+        df_aoi_fixations_position_reactive = position_stimulus(df_trial_reduced_reactive, dict_stim_position)
+        # get accuracy of reactive
+        df_trial_corr_reactive, dict_reactive_subject = accuracy_reactive(df_aoi_fixations_position_reactive)
+        # df without reducing data
+        list_df_reactive.append(df_trial_corr_reactive)
+        df_reactive_result_blocks = pd.concat(list_df_reactive)
+        # get short report
+        df_report_reactive = short_report(df_trial_corr_reactive, dict_anticipations_count, dict_trial_max,
+                                          dict_stim_position, anticipations=False)
+        # short reports of both blocks
+        list_df_reports.append(df_report_reactive)
+        df_short_report_reactive = pd.concat(list_df_reports)
+
+    return df_reactive_result_blocks, df_short_report_reactive
+
+
+# =============================================================================
+#  ANALYZE (CALLS FUNCTIONS TO ANALYZE ANTICIPATORY AND REACTIVE FIXATIONS)
+# =============================================================================  
+  
+  
+def analyze_data():
+
+    """
+    Call functions to analyze anticipatory and reactive fixations, creating
+    a long and short report for each type of fixations. Merge anticipatory and
+    reactive fixations creating a general long (one trial per row) and short
+    report (one subject per row).
+
+    Input:
+        None
+    Output:
+        df_trials_long_report: DataFrame with long report.
+        df_trials_short_report: DataFrame with long report.
+    """
+
+    # save the results in a new folder created in the same path
+    results_dir = os.path.join(directory_saving_results, 'AnalyzedI2MC')
+    # if the directory doesn't exist, this loop creates it
+    if not os.path.isdir(results_dir):
+        os.makedirs(results_dir)
+    # analyze anticipatory fixations
+    df_anticipations, df_anticipations_report = analyze_anticipations()
+    # analyze reactive fixations
+    df_reactive, df_reactive_report = analyze_reactive()
+    # merge short reports (anticipations and reactive fixations)
+    df_trials_short_report = df_anticipations_report.merge(df_reactive_report, on=['subject', 'block', 'position',
+                                                                                   'trial_max_completed'])
+    df_trials_short_report = pd.pivot_table(df_trials_short_report, index='subject', columns='block').reset_index()
+    # join columns multiindex
+    df_trials_short_report.columns = df_trials_short_report.columns.map(lambda x: '_'.join([str(i) for i in x]))
+    # save reports
+    df_trials_short_report.to_csv(os.path.join(results_dir, 'switching_short_report.txt'), sep=';', decimal=',')
+
+    return df_anticipations, df_reactive, df_trials_short_report
+
+
+  # code to call
+df_long_report, df_short_report = analyze_data()
+
+
 
 
 
