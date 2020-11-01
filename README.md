@@ -1,4 +1,4 @@
-# Functions
+# Functions to reduce raw data (eye tracking)
 Compilation of functions to reduce raw data from touchscreen and eye tracking tasks. These tasks were employed for two studies (toddlers and babies) that are part of the Doctoral Thesis of **Sebastián Moyano Flores**. The studies took place at the Research Centre for Mind, Brain and Behaviour (CIMCYC - University of Granada) under the supervision of Dr. M. Rosario Rueda Cuerva (https://scholar.google.com/citations?user=dTFQyuMAAAAJ&hl=en).
 
 **BEXAT (Babies Executive Attention) study:** <br>
