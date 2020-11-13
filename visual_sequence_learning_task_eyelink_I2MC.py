@@ -57,12 +57,18 @@ columns = {'trial_start_time': 'TRIAL_START_TIME',      # trial start time colum
            'trial': 'TRIAL_INDEX',                      # trial column name
            'target_loc': 'position'}                    # target location column name
 
-AOIs = {'x_left_AOI': [0, 764],         # coordinates for x coordinates left AOI
-        'y_left_AOI': [0, 1080],        # coordinates for y coordinates left AOI
-        'x_right_AOI': [1156, 1920],    # coordinates for x coordinates right AOI
-        'y_right_AOI': [0, 1080],       # coordinates for y coordinates right AOI
-        'x_central_AOI': [764, 1156],   # coordinates for x coordinates central AOI
-        'y_central_AOI': [0, 1080]}     # coordinates for y coordinates central AOI
+AOIs = {'x_left_AOI': [0, 764],         # x coordinates for left AOI
+        'y_left_AOI': [0, 1080],        # y coordinates for left AOI
+        'x_right_AOI': [1156, 1920],    # x coordinates for right AOI
+        'y_right_AOI': [0, 1080],       # y coordinates for right AOI
+        'x_central_AOI': [764, 1156],   # x coordinates for central AOI
+        'y_central_AOI': [0, 1080],     # y coordinates for central AOI
+        'x_upper_left_AOI': [ , ],      # x coordinates for upper left AOI
+        'y_upper_left_AOI': [ , ],      # y coordinates for upper left AOI
+        'x_upper_right_AOI': [ , ],     # x coordinates for upper right AOI
+        'y_upper_right_AOI': [ , ],     # y coordinates for upper right AOI
+        'x_bottom_central_AOI': [ , ],  # x coordinates for bottom central AOI
+        'y_bottom_central_AOI': [ , ]}  # y coordinates for bottom central AOI
 
 
 # dictionary with sequences per trial (key = trial, value = sequence)
@@ -338,6 +344,57 @@ def AOI_fixation(f_fixations):
 
     return df_fix_aoi
 
+
+def AOI_fixation_3pos(f_fixations):
+
+    """
+    Provides fixation (position 1, 2 or 3) per data sample.
+
+    Input:
+        f_fixations: DataFrame with fixations data after I2MC function
+
+    Output:
+        df_fix_aoi: DataFrame with AOI fixations data added
+
+    """
+
+    # x and y coordinates inside screen
+    condition_in_screen_xpos = (f_fixations['xpos'] > 0) & (f_fixations['xpos'] < options['xres'])
+    condition_in_screen_ypos = (f_fixations['ypos'] > 0) & (f_fixations['ypos'] < options['yres'])
+    # x and y coordinates for upper left AOI
+    condition_in_upper_left_xpos = (f_fixations['xpos'] > AOIs['x_upper_left_AOI'][0]) & \
+                                   (f_fixations['xpos'] <= AOIs['x_upper_left_AOI'][1])
+    condition_in_upper_left_ypos = (f_fixations['xpos'] > AOIs['y_upper_left_AOI'][0]) & \
+                                   (f_fixations['xpos'] <= AOIs['y_upper_left_AOI'][1])
+    # x and y coordinates for upper right AOI
+    condition_in_upper_right_xpos = (f_fixations['xpos'] >= AOIs['x_upper_right_AOI'][0]) & \
+                                    (f_fixations['xpos'] < AOIs['x_upper_right_AOI'][1])
+    condition_in_upper_right_ypos = (f_fixations['xpos'] >= AOIs['y_upper_right_AOI'][0]) & \
+                                    (f_fixations['xpos'] < AOIs['y_upper_right_AOI'][1])
+    # x and y coordinates for bottom central AOI
+    condition_in_bottom_central_xpos = (f_fixations['xpos'] > AOIs['x_bottom_central_AOI'][0]) & \
+                                       (f_fixations['xpos'] < AOIs['x_bottom_central_AOI'][1])
+    condition_in_bottom_central_ypos = (f_fixations['xpos'] > AOIs['y_bottom_central_AOI'][0]) & \
+                                       (f_fixations['xpos'] < AOIs['y_bottom_central_AOI'][1])
+    # general conditions
+    condition_in_screen = condition_in_screen_xpos & condition_in_screen_ypos
+    condition_in_upper_left = condition_in_upper_left_xpos & condition_in_upper_left_ypos
+    condition_in_upper_right = condition_in_upper_right_xpos & condition_in_upper_right_ypos
+    condition_in_bottom_central = condition_in_bottom_central_xpos & condition_in_bottom_central_ypos
+    # masks
+    mask_in_upper_left = condition_in_screen & condition_in_upper_left
+    mask_in_upper_right = condition_in_screen & condition_in_upper_right
+    mask_in_bottom_central = condition_in_screen & condition_in_bottom_central
+    # label fixations AOIs
+    f_fixations['AOI_fix'] = ''
+    f_fixations.loc[mask_in_upper_left, 'AOI_fix'] = 1
+    f_fixations.loc[mask_in_upper_right, 'AOI_fix'] = 2
+    f_fixations.loc[mask_in_bottom_central, 'AOI_fix'] = 3
+
+    df_fix_aoi = f_fixations.copy(deep=True)
+
+    return df_fix_aoi
+
 # =============================================================================
 #  REDUCE DATA
 # =============================================================================
@@ -372,7 +429,8 @@ def reduce_data(df_fix_aoi):
 def position_stimulus_VSL_6mo(df_trial_reduced):
 
     """
-    Sets stimulus appearance location per trial.
+    Sets stimulus appearance location per trial. Position 1 correspond to the
+    central left part of the screen while position 2 to the central right part.
 
     Input:
         df_trial_reduced: DataFrame with data reduced
@@ -394,6 +452,70 @@ def position_stimulus_VSL_6mo(df_trial_reduced):
 
     df_fix_aoi_reduced_loc = df_trial_reduced.copy(deep=True)
     
+    return df_fix_aoi_reduced_loc
+
+
+def position_stimulus_VSL_9mo(df_trial_reduced):
+    """
+    Sets stimulus appearance location per trial. Position 1 correspond to the
+    central left part of the screen while position 2 to the central right part.
+
+    Input:
+        df_trial_reduced: DataFrame with data reduced
+
+    Output:
+        df_fix_aoi_reduced_loc: DataFrame with location of stimulus appearance per trial
+
+    Notes:
+        In sequences 1-1-2 only multiples of 3 appear in position 2.
+    """
+
+    # masks
+    condition_right_target = df_trial_reduced['trial'] % 3 == 0
+    condition_left_target = ~condition_right_target
+
+    df_trial_reduced['position'] = ''
+    df_trial_reduced.loc[condition_right_target, 'position'] = 2
+    df_trial_reduced.loc[condition_left_target, 'position'] = 1
+
+    df_fix_aoi_reduced_loc = df_trial_reduced.copy(deep=True)
+
+    return df_fix_aoi_reduced_loc
+
+
+def position_stimulus_VSL_3pos(df_trial_reduced):
+    """
+    Sets stimulus appearance location per trial for sequences 1-2-1-3.
+    Position 1 correspond to the upper left side of the screen, position 2
+    to the upper right side and position 3 to the central bottom side.
+
+    Input:
+        df_trial_reduced: DataFrame with data reduced
+
+    Output:
+        df_fix_aoi_reduced_loc: DataFrame with location of stimulus appearance per trial
+
+    Notes:
+        In sequences 1-2-1-3 position 1 is only presented in even trials. However,
+        as position 2 and 3 are presented in odd trials, we created list of trials
+        for each position, as trials are always fixed to the same position.
+    """
+
+    position_2 = [2, 6, 10, 14, 18, 22, 26, 30, 34, 38, 42, 46, 50, 54, 58, 62]
+    position_3 = [4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64]
+
+    # masks
+    condition_upper_left_target = df_trial_reduced['trial'] % 2 == 1
+    condition_upper_right_target = df_trial_reduced['trial'] in position_2
+    condition_bottom_central_target = df_trial_reduced['trial'] in position_3
+
+    df_trial_reduced['position'] = ''
+    df_trial_reduced.loc[condition_upper_left_target, 'position'] = 1
+    df_trial_reduced.loc[condition_upper_right_target, 'position'] = 2
+    df_trial_reduced.loc[condition_bottom_central_target, 'position'] = 3
+
+    df_fix_aoi_reduced_loc = df_trial_reduced.copy(deep=True)
+
     return df_fix_aoi_reduced_loc
 
 # =============================================================================
