@@ -306,7 +306,7 @@ def AOI_fixations_target(df_fix):
     condition_in_ypos = (df_fix['ypos'] > AOIs['y_left_AOI'][0]) & \
                         (df_fix['ypos'] < AOIs['y_left_AOI'][1])
     # general conditions
-    condition_in_screen = condition_in_screen_xpos & condition_in_screen_ypos
+    condition_in_screen = condition_inscreen_xpos & condition_inscreen_ypos
 
     # masks
     mask_left = condition_in_left_xpos & condition_in_ypos
@@ -546,7 +546,7 @@ def median_scores(df_central_stim, df_first_corr_sacc_latency, saccade_threshold
 
     # keeps valid trials of central fixations
     df_valid_trials = df_central_stim.query('trial_filter == 1').merge(df_first_corr_sacc_latency[['subject', 'trial',
-                                                                                                  'Saccade_latency_StartFix_StartTrial']],
+                                                                                                   'Saccade_latency_StartFix_StartTrial']],
                                                                       on=['subject', 'trial'], how='left')
     # drop valid trials with saccade latency below the threshold
     df_sacc_threshold = df_valid_trials.drop(df_valid_trials[df_valid_trials['Saccade_latency_StartFix_StartTrial']
