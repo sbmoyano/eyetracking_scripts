@@ -94,20 +94,32 @@ def process_file(dataframe, trial_type, cols_keep):
         file_pivot_go.rename(columns={'Subject_': 'Subject',
                                       'Subject__': 'Subject',
                                       'Subject___': 'Subject'}, inplace=True)
-        # reduce data by subject and task type for No-Go and StopSignal trials, and only in incorrect responses
-        file_nogo_stopsignal = dataframe[(dataframe[trial_type] != 'Go') &
-                                         (dataframe[target_acc] == 0)]
-        file_results_nogo = pd.DataFrame(file_nogo_stopsignal.groupby([id_code, task, trial_type])[target_RT,
-                                                                                                   pretarget_dur].mean())
-        file_pivot_nogo = pd.pivot_table(file_results_nogo, index=[id_code],
-                                         columns=[task, trial_type]).reset_index()
-        file_pivot_nogo.columns = ['_'.join(col).strip() for col in file_pivot_nogo.columns.values]
-        file_pivot_nogo.rename(columns={'Subject_': 'Subject',
-                                        'Subject__': 'Subject',
-                                        'Subject___': 'Subject'}, inplace=True)
-        go_nogo_stopsignal = file_pivot_go.merge(file_pivot_nogo, how='inner', on=id_code)
+        # reduce data by subject and task type for StopSignal trials and only in correct responses
+        file_stopsignal = dataframe[(dataframe[trial_type] == 'StopSignal') &
+                                    (dataframe[target_acc] == 1)]
+        file_results_stopsignal = pd.DataFrame(file_stopsignal.groupby([id_code, task, trial_type])[target_RT,
+                                                                                                    pretarget_dur].mean())
+        file_pivot_stopsignal = pd.pivot_table(file_results_stopsignal, index=[id_code],
+                                               columns=[task, trial_type]).reset_index()
+        file_pivot_stopsignal.columns = ['_'.join(col).strip() for col in file_pivot_stopsignal.columns.values]
+        file_pivot_stopsignal.rename(columns={'Subject_': 'Subject',
+                                              'Subject__': 'Subject',
+                                              'Subject___': 'Subject'}, inplace=True)
+
+        # reduce data by subject and task type for No-Go trials, and only in incorrect responses
+        #file_nogo_stopsignal = dataframe[(dataframe[trial_type] == 'NoGo') &
+        #                                 (dataframe[target_acc] == 0)]
+        #file_results_nogo = pd.DataFrame(file_nogo_stopsignal.groupby([id_code, task, trial_type])[target_RT].mean())
+        #file_pivot_nogo = pd.pivot_table(file_results_nogo, index=[id_code],
+        #                                 columns=[task, trial_type]).reset_index()
+        #file_pivot_nogo.columns = ['_'.join(col).strip() for col in file_pivot_nogo.columns.values]
+        #file_pivot_nogo.rename(columns={'Subject_': 'Subject',
+        #                                'Subject__': 'Subject',
+        #                               'Subject___': 'Subject'}, inplace=True)
+        # merge files
+        go_nogo_stopsignal = file_pivot_go.merge(file_pivot_stopsignal, how='inner', on=id_code)
         # we only need pretarget for StopSignal trials, in NoGo trials is fixed
-        go_nogo_stopsignal.drop(columns='PreTarget_Duration_GoNoGo_NoGo', inplace=True)
+        #go_nogo_stopsignal.drop(columns='PreTarget_Duration_GoNoGo_NoGo', inplace=True)
 
         return go_nogo_stopsignal
 
@@ -165,5 +177,23 @@ def process_file(dataframe, trial_type, cols_keep):
     return df_RT_subject_go_nogo_stopsignal, df_errors_subject_go_nogo_stopsignal, dataframe
 
 
-go_nogo_RT, go_nogo_errors, df = process_file(file, trial_type, cols_to_keep)
+TR_go_pretarget, errors, df = process_file(file, trial_type, cols_to_keep)
+
+directory_files = 'C:\\Users\\sebas\\ownCloud\\DATOS W5\\Stopsignaltask Backup 18mayo2018\\Exported'
+os.chdir(directory_files)
+results_dir = os.path.join(directory_files, 'Analyzed_data')
+
+# if the directory doesn't exist, this loop creates it
+try:
+    os.mkdir(results_dir)
+except OSError:
+    print ("Creation of the directory %s failed" % results_dir)
+else:
+    print ("Successfully created the directory %s " % results_dir)
+
+if not os.path.isdir(results_dir):
+    os.makedirs(results_dir)
+
+TR_go_pretarget.to_csv(os.path.join(results_dir, 'reduced_data_subject_TR.csv'), sep=';', decimal=',')
+errors.to_csv(os.path.join(results_dir, 'reduced_data_subject_errors.csv'), sep=';', decimal=',')
 
