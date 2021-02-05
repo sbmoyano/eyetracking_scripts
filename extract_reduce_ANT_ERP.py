@@ -22,7 +22,7 @@ import os
 # =============================================================================
 
 # path
-directory = 'C:/Users/sebas/ownCloud/DATOS W5/ANT Backup 18mayo2018/Exported/ANT_filtered.csv'
+directory = 'C:\\Users\\sebas\\ownCloud\\DATOS W5\\ANT Backup 18mayo2018\\Exported\\ANT_filtered_added.csv'
 # load files (csv)
 file = pd.read_csv(directory, sep=';')
 # rename columns to remove dots
@@ -245,19 +245,23 @@ def process_file(dataframe, trial_type_col1, trial_type_col2, cols_keep):
 #  EXAMPLE
 # =============================================================================
 
-data = []
+results_subject, results_subject_block = process_file(file, cond1, cond2, cols_to_keep)
 
-# example of for loop to load and process files inside a folder
-for filename in all_files_alerting:
-    print('Working on file ' + filename)
-    df = pd.read_csv(filename, sep=',', header=0, index_col=False, decimal='.', error_bad_lines=False)
-    data_processed = process_file(df, trial, 'Alert', 'NoAlert', cols_to_keep)
-    data.append(data_processed)
-    results = pd.concat(data)
-    results_dir = os.path.join(directory, 'Analyzed_data')
-    # if the directory doesn't exist, this loop creates it
-    if not os.path.isdir(results_dir):
-        os.makedirs(results_dir)
-    results.to_csv(os.path.join(results_dir, 'reduced_data.csv'), sep=';', decimal='.')
+directory_files = 'C:\\Users\\sebas\\ownCloud\\DATOS W5\\ANT Backup 18mayo2018\\Exported'
+os.chdir(directory_files)
+results_dir = os.path.join(directory_files, 'Analyzed_data')
 
-x, y = process_file(file, cond1, cond2, cols_to_keep)
+# if the directory doesn't exist, this loop creates it
+try:
+    os.mkdir(results_dir)
+except OSError:
+    print ("Creation of the directory %s failed" % results_dir)
+else:
+    print ("Successfully created the directory %s " % results_dir)
+
+if not os.path.isdir(results_dir):
+    os.makedirs(results_dir)
+
+results_subject.to_csv(os.path.join(results_dir, 'reduced_data_subject.csv'), sep=';', decimal=',')
+results_subject_block.to_csv(os.path.join(results_dir, 'reduced_data_subject_block.csv'), sep=';', decimal=',')
+
