@@ -83,43 +83,52 @@ def process_file(dataframe, trial_type, cols_keep):
     """
 
     def compute_mean(dataframe):
-        # reduce data by subject and task type for Go trials and only in correct responses
-        file_go = dataframe[(dataframe[trial_type] == 'Go') &
-                            (dataframe[target_RT] > 200) &
-                            (dataframe[target_acc] == 1)]
-        file_results_go = pd.DataFrame(file_go.groupby([id_code, task, trial_type])[target_RT].mean())
-        file_pivot_go = pd.pivot_table(file_results_go, index=[id_code],
-                                       columns=[task, trial_type]).reset_index()
-        file_pivot_go.columns = ['_'.join(col).strip() for col in file_pivot_go.columns.values]
-        file_pivot_go.rename(columns={'Subject_': 'Subject',
-                                      'Subject__': 'Subject',
-                                      'Subject___': 'Subject'}, inplace=True)
-        # reduce data by subject and task type for StopSignal trials and only in correct responses
-        file_stopsignal = dataframe[(dataframe[trial_type] == 'StopSignal') &
-                                    (dataframe[target_acc] == 1)]
-        file_results_stopsignal = pd.DataFrame(file_stopsignal.groupby([id_code, task, trial_type])[target_RT,
-                                                                                                    pretarget_dur].mean())
-        file_pivot_stopsignal = pd.pivot_table(file_results_stopsignal, index=[id_code],
-                                               columns=[task, trial_type]).reset_index()
-        file_pivot_stopsignal.columns = ['_'.join(col).strip() for col in file_pivot_stopsignal.columns.values]
-        file_pivot_stopsignal.rename(columns={'Subject_': 'Subject',
-                                              'Subject__': 'Subject',
-                                              'Subject___': 'Subject'}, inplace=True)
+        # We do not need RTs for 'NoGo' trials in the Go-NoGo task, only accuracy for 'NoGo' trials, so we do not
+        # cover that in the current script
 
-        # reduce data by subject and task type for No-Go trials, and only in incorrect responses
-        #file_nogo_stopsignal = dataframe[(dataframe[trial_type] == 'NoGo') &
-        #                                 (dataframe[target_acc] == 0)]
-        #file_results_nogo = pd.DataFrame(file_nogo_stopsignal.groupby([id_code, task, trial_type])[target_RT].mean())
-        #file_pivot_nogo = pd.pivot_table(file_results_nogo, index=[id_code],
-        #                                 columns=[task, trial_type]).reset_index()
-        #file_pivot_nogo.columns = ['_'.join(col).strip() for col in file_pivot_nogo.columns.values]
-        #file_pivot_nogo.rename(columns={'Subject_': 'Subject',
-        #                                'Subject__': 'Subject',
-        #                               'Subject___': 'Subject'}, inplace=True)
-        # merge files
-        go_nogo_stopsignal = file_pivot_go.merge(file_pivot_stopsignal, how='inner', on=id_code)
-        # we only need pretarget for StopSignal trials, in NoGo trials is fixed
-        #go_nogo_stopsignal.drop(columns='PreTarget_Duration_GoNoGo_NoGo', inplace=True)
+        # To compute median and mean RT for 'Go' trials in Go-NoGo and StopSignal tasks, removing RTs below 200 ms
+        # (anticipatory response) and only for correct answers (1)
+        go_trials = dataframe[(dataframe[trial_type] == 'Go') &
+                              (dataframe[target_RT] > 200) &
+                              (dataframe[target_acc] == 1)]
+
+        go_trials_results = pd.DataFrame(go_trials.groupby([id_code,
+                                                            task,
+                                                            trial_type]).agg(target_RT_mean=(target_RT, 'mean'),
+                                                                             target_RT_median=(target_RT, 'median')))
+
+        go_pivot = pd.pivot_table(go_trials_results, index=[id_code], columns=[task, trial_type]).reset_index()
+        go_pivot.columns = ['_'.join(col).strip() for col in go_pivot.columns.values]
+        go_pivot.rename(columns={'Subject_': 'Subject',
+                                 'Subject__': 'Subject',
+                                 'Subject___': 'Subject'},
+                        inplace=True)
+
+        # To compute median and mean pretarget time for 'StopSignal' trials, as pretarget is only considered in
+        # 'StopSignal' trials. To compute this RT we consider both correct and incorrect responses based on
+        # previous research.
+        pretarget_trials = dataframe[(dataframe[trial_type] == 'StopSignal')]
+
+
+        pretarget_trials_results = pd.DataFrame(pretarget_trials.groupby([id_code,
+                                                                          task,
+                                                                          trial_type]).agg(pretarget_mean=(pretarget_dur, 'mean'),
+                                                                                           pretarget_median=(pretarget_dur, 'median')))
+
+        pretarget_pivot = pd.pivot_table(pretarget_trials_results,
+                                         index=[id_code],
+                                         columns=[task,
+                                                  trial_type]).reset_index()
+
+        pretarget_pivot.columns = ['_'.join(col).strip() for col in pretarget_pivot.columns.values]
+        pretarget_pivot.rename(columns={'Subject_': 'Subject',
+                                        'Subject__': 'Subject',
+                                        'Subject___': 'Subject'},
+                               inplace=True)
+
+        go_nogo_stopsignal = go_pivot.merge(pretarget_pivot,
+                                            how='inner',
+                                            on=id_code)
 
         return go_nogo_stopsignal
 
@@ -176,9 +185,10 @@ def process_file(dataframe, trial_type, cols_keep):
 
     return df_RT_subject_go_nogo_stopsignal, df_errors_subject_go_nogo_stopsignal, dataframe
 
-
+# compute scores
 TR_go_pretarget, errors, df = process_file(file, trial_type, cols_to_keep)
 
+# save scores
 directory_files = 'C:\\Users\\sebas\\ownCloud\\DATOS W5\\Stopsignaltask Backup 18mayo2018\\Exported'
 os.chdir(directory_files)
 results_dir = os.path.join(directory_files, 'Analyzed_data')
@@ -194,6 +204,7 @@ else:
 if not os.path.isdir(results_dir):
     os.makedirs(results_dir)
 
-TR_go_pretarget.to_csv(os.path.join(results_dir, 'reduced_data_subject_TR.csv'), sep=';', decimal=',')
+# to csv
+TR_go_pretarget.to_csv(os.path.join(results_dir, 'reduced_data_subject_TR_MEAN_MEDIAN.csv'), sep=';', decimal=',')
 errors.to_csv(os.path.join(results_dir, 'reduced_data_subject_errors.csv'), sep=';', decimal=',')
 
