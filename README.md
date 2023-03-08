@@ -1,4 +1,4 @@
-# Functions to reduce raw data (eye tracking)
+# Functions to reduce raw data (eye tracking and behavioural tasks)
 Compilation of functions to reduce raw data from touchscreen and eye tracking tasks. These tasks were employed for two studies (toddlers and babies) that are part of the Doctoral Thesis of **Sebastián Moyano Flores**. The studies took place at the Research Centre for Mind, Brain and Behaviour (CIMCYC - University of Granada) under the supervision of Dr. M. Rosario Rueda Cuerva (https://scholar.google.com/citations?user=dTFQyuMAAAAJ&hl=en).
 
 **BEXAT (Babies Executive Attention) study:** <br>
@@ -20,4 +20,7 @@ This accelerated longitudinal study was supervised by Dr. M. Rosario Rueda and c
 2. Gap-Overlap task
 3. Switching task (Kovács & Mehler, 2009)
 4. Backward Semantic Inhibition task (Chow et al., 2016)
+
+**EEG data:**
+1. Behavioural data from an EEG adaptation of the Violation of Expectation paradigm (Stahl et al., 2015)
 
